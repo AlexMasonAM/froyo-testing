@@ -45,7 +45,7 @@ RSpec.describe YogurtsController, :type => :controller do
     before(:each) {
       get :new   
     }
-    
+
     it "is successful" do
       expect(response).to be_success #checks for 200 status code in ruby response object
     end
@@ -54,7 +54,52 @@ RSpec.describe YogurtsController, :type => :controller do
       expect(response).to render_template :new
     end
 
-    it "assigns a new yogurt to a variable yogurt"
-    it "doesn't save any new records"
+    it "assigns a new yogurt to a variable yogurt" do
+      expect( assigns(:yogurt) ).to be_a(Yogurt)
+    end
+
+    it "doesn't save any new records" do
+      expect{ get :new }.to change(Yogurt, :count).by(0)
+    end
   end
+
+  describe 'POST create' do
+     
+    context "when form is valid" do  
+      let(:valid_attributes) do
+        { flavor: 'raspberry', topping: 'whipped cream', quantity: 12.0 }
+      end
+
+      before(:each) {
+        post :create, yogurt: valid_attributes   
+      }
+
+      # it "is successful" do
+      #   expect(response).to be_status(302) #results in 200 status code, will never work
+      # end
+
+      it "redirects to index" do
+        expect(response).to redirect_to yogurts_path
+      end
+
+      it "added a yogurt record" do
+        expect{ post :create, yogurt: valid_attributes }.to change(Yogurt, :count).by(1)
+      end
+    end
+
+    context "when form is invalid" do
+      let(:bad_attributes) do
+        { flavor: nil, topping: nil, quantity: nil }
+      end      
+      
+      it "does not add a yogurt record" do
+        expect{ post :create, yogurt: bad_attributes }.to change(Yogurt, :count).by(0)
+      end
+
+      it "renders the new view file" do
+        post :create, yogurt: bad_attributes
+        expect(response).to render_template :new
+      end
+    end
+  end  
 end
